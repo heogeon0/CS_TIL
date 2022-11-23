@@ -1,4 +1,4 @@
-# 운영체제란 무엇인가?
+# 운영체제
 
 ## 1. 운영체제
 
@@ -271,3 +271,180 @@
     - 커널 함수의 호출 = 시스템 콜
 
 ![image-20221123013614752](README.assets/image-20221123013614752.png)
+
+
+
+---
+
+
+
+## 2. 프로세스
+
+### 1. 프로세스의 개념
+
+<img src="README.assets/image-20221124001642928.png" alt="image-20221124001642928" style="width:300px;" align="right" /> Process is a program in execution
+
+- 프로세스의 문맥(현재상태를 표현하기 위함)
+  - CPU의 수행상태를 나타내는 하드웨어 문맥
+    - Program Counter
+    - 각종 register
+    - 주로 register가 어떤 값을 가지고 있었는가?
+  - 프로세스의 주소 공간(메모리와 관련)
+    - code, data, stack
+    - 어떤 데이터가 들어가 있는지?
+  - 프로세스 관련 커널 자료 구조
+    - PCB(Process Control Block)
+    - Kernel Stack
+    - 운영체제가 이 프로세스에 대해 어떻게 평가하고 있는지?
+
+
+
+### 2. 프로세스의 상태 (Process State)
+
+- 프로세스는 상태(state)가 변경되며 수행된다
+  - Runnig
+    - CPU를 잡고 instruction을 수행중인 상태
+  - Ready
+    - CPU를 기다리는 상태(다른 모든 중비는 완료되어야함 (메모리 등))
+  - Blocked(wait, sleep)
+    - CPU를 주어도 당장 instruction을 수행할 수 없는 상태
+    - Process 자신이 요청한 event(I/O작업) 가 즉시 만족되지 않아 이를 기다리는 상태
+  - Suspended(stopped)
+    - 외부적인 이유로 프로세스의 수행이 정지된 상태 (중기 스케줄러에 의해)
+    - 프로세스는 통째로 디스크에 swap out 된다/
+  - New : 프로세스가 생성중인 상태
+  - Terminated : 수행이 끝난 상태
+  
+  Block : 자신이 요청한 event가 만족되면 Ready
+  
+  Suspended : 외부에서 resume(메모리를 다시 주어야) Active
+
+<img src="README.assets/image-20221124002722765.png" alt="image-20221124002722765" style="width:50%;" align="left" /><img src="README.assets/image-20221124002945826.png" alt="image-20221124002945826" style="width:50%;" />
+
+
+
+
+
+### 3. Process Control Block (PCB)
+
+<img src="README.assets/image-20221124003657492.png" alt="image-20221124003657492" style="width:30%;" align="right" /> 
+
+- 운영체제가 각 프로세스를 관리하기 위해 프로세스당 유지하는 정보
+- 다음의 구성 요소를 가진다 (구조체로 유지)
+  - (1) OS가 관리상 사용하는 정보
+  - (2) CPU 수행 관련 하드웨어 값
+  - (3) 메모리 관련 (code, data, stack의 위치정보)
+  - (4) 파일 관련
+
+
+
+
+
+### 4. 문맥교환 (Context Switch)
+
+- CPU를 한 프로세스에서 다른 프로세스로 넘겨주는 과정
+- CPU가 다른 프로세스에게 넘어갈 때 운영체제는 다음을 수행
+  - CPU를 내어주는 프로세스의 상태를 그 프로세스의 PCB(커널)에 저장
+  - CPU를 새롭게 얻는 프로세스의 상태를 PCB에서 읽어옴
+
+<img src="README.assets/image-20221124004208817.png" alt="image-20221124004208817" style="width:50%;" />
+
+
+
+- **System call이나 Interrupt 발생시 context switch가 일어나는 것은 아님**
+  - Context Switch란 Process의 CPU점유 변경 상태를 말한다
+  - 1번처럼 ISR / System call 함수로 인해 OS한테 점유가 갔다가 돌아오는 것은 문맥변경이 아님
+
+<img src="README.assets/image-20221124004300531.png" alt="image-20221124004300531" style="width:50%; " />
+
+
+
+### 5. 프로세스를 스케줄링하기 위한 큐
+
+<img src="README.assets/image-20221124004813794.png" alt="image-20221124004813794" style="width:50%;" align="left" /><img src="README.assets/image-20221124004858234.png" alt="image-20221124004858234" style="width:50%;"  align="right"/>
+
+
+
+- 
+- - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 6. 스케줄러 (Scheduler)
+
+1. Long-term scheduler (장기 스케줄러 or Job Scheduler)
+   - 시작 프로세스(New) 중 어떤 것들을 ready queue로 보낼지 결정
+   - 프로세스에 memory을 주는 문제
+   - degree of Multiprogramming을 제어
+   - time sharing system에는 보통 장기 스케줄러가 없음 (무조건 ready queue로 감 -> 메모리를 무조건 받음)
+2. Short-term scheduler(단기 스케줄러 or CPU scheduler)
+   - 어떤 프로세스를 다음번에 running시킬지 결정
+   - 프로세스에 CPU를 주는 문제
+   - 충분히 빨라야함
+3. Medium-Term Scheduler (중기 스케줄러 or Swapper)
+   - 여유 공간 마련을 위해 일부 프로세스를 선택하여 프로세스를 통째로 메모리에서 디스크로 쫒아냄
+   - 프로세스에게서  memory를 뺏는 문제
+   - degree of Multiprograming
+
+
+
+### 7. 프로세스 상태도
+
+<img src="README.assets/image-20221124010148588.png" alt="image-20221124010148588" style="width :60%;" />
+
+
+
+### 8. Thread
+
+- 프로세스 하나에서 공유할 수 있는것은 최대한 공유하고 CPU수행과 관련된 정보만 별도로 가짐
+- A thread is basic unit of CPU uitilization
+- Thread의 구성 -> Thread들이 독립적으로 가지는 것들(CPU수행과 관련된 것)
+  - program counter
+  - reguster set
+  - stack space
+- Thread가 동료 thread와 공유하는 부분(=task)
+  - code section
+  - data section
+  - OS resources
+- 전통적인 개념의 heavyweight process는 하나의 thread를 가지고 있는 task로 볼 수 있다.
+- 다중 스레드로 구성된 태스크 구조에서는 하나의 서버 스레드가 blocked 상태인 동안에도 동일한 태스크 내의 다른 스레드가 실행되어 빠른 처리를 할 수 있다.
+  - EX
+  - 웹페이지를 읽어오는 동안 웹브라우저는 blocked 상태임 (I/O)를 기다리는 중
+  - 웹 브라우저가 여러개의 스레드로 형성 돼 있다면, 하나의 스레드가 이미지를 불러오며 blocked 상태일 때, 다른 스레드가 텍스트와 같은 컨텐츠를 렌더링 하여 빠른 응답 제공 가능
+- 동일한 일을 수행하는 다중스레드가 협력하여 높은 처리율과 성능향상을 얻을 수 있다.
+- 스레드를 사용하면 병렬성을 높일 수 있다
+
+
+
+#### 1. 스레드의 장점 정리
+
+- Responsivenss 
+  - 반응성이 좋아짐
+
+- Resouce Sharing 
+  - Code Section / Data Section / OS resouces 등을 공유
+- Economy 
+  - 같은 작업이라면 여러개의 프로세스보다 여러개의 스레드가 유리
+- Utilization of MP Architectures
+  - 멀티 프로세서 환경에서도 효율적으로 실행 가능
+
+
+
+
+
+
+
