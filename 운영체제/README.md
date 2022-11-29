@@ -603,7 +603,234 @@
   - CPU의 제어권을 CPU scheduler에 의해 선택된 프로세스에게 넘긴다
   - 이 과정을 context switch(문맥 교환)라고 한다
 
-  
+
++ 선점형 스케줄링 vs 비선점형 스케줄링(강제로 빼앗지 않음)
+
+
+
+### 10. CPU Scheduling
+
+- CPU Utilization (이용률)
+  - 전체시간 중 CPU가 일 한 시간
+  - 최대한 CPU가 계쏙 일하는 것이 좋음
+- Throughput(처리량)
+  - 주어진 시간 동안 완료한 작업량
+
+```아래 세개는 프로세스의 입장에서의 성능이다```
+
+- Turnaround time (소요시간, 변환시간)
+  - CPU burst가 끝나고 나갈때 까지 시간
+- Waiting time(대기시간)
+  -  CPU를 기다린 시간
+  - 비선점형인 경우 CPU를 뺏겻을 때 기다린 시간도 포함된다
+- Response time(응답시간)
+  - Ready Queue에 들어와서 처음으로 .CPU를 받기까지의 시간
+  - 처음 CPU를 받기까지 기다린 시간으로 waiting time과 차이가 있다.
+  - TimeSharing 방식의 컴퓨터에서 중요한 문제
+
+#### 1. FCFS (First-Come First-Served)
+
+- 먼저 온 순서대로 처리하는 방식
+- 비선점형 스케줄링 방식이다.
+
++ 들어온 순서에 따라 대기시간의 차이가 커질 수 있다.
+  + Convoy effect
+
+#### 2. SJF (Shortest-Job-First)
+
+- 각 프로세스와 다음번 CPU burst time을 가지고 스케줄링에 활용
+
+- CPU burst time이 가장 짧은 프로세스를 먼저 스케줄
+
+- Two schemes:
+
+  - Nonpreemptive(비선점)
+    - 일단 CPU를 잡으면 이번 CPU burst가 완료될 때까지 CPU를 선점당하지 않음
+  - Prememptive
+    - 현재 수행중인 프로세스의 남은 burst time보다 더 짧은 CPU burst  time을 가지는 새로운 프로세스가 도착하면 CPU를 빼앗김
+    - 이 방법을 SRTF(shortest-Remaining-Time-First)라고 부름
+    - SRTF는 가장 짧은 대기시간을 보장한다
+
+- Problem
+
+  - Starvation 현상 (기아현상)이 발생할 수 있음
+    - 응답시간이 끝없이 길어 질 수 있음
+  - CPU burst time을 실제로 알 수 없음
+    - 보통은 추정해서 사용하는 경우가 있음
+
+- 다음 CPU Burst Time의 예측
+
+  ![image-20221129235624485](README.assets/image-20221129235624485.png)
+
+#### 3. Priority Scheduling
+
+- 우선순위가 가장 높은 프로세스에게 할당
+  - Preemptive
+  - nonpreemptive
+- 우선순위를 결정하는 방법에는 여러가지가 있지만 여기서 다루지는 않음
+  - SJF는 CPU burst-time을 우선순위로한 Priority Scheduling의 일종이다
+- Problem
+  - 마찬가지로 Starvation현상이 나타날 수 있다.
+- Starvation현상을 막기위한 방법으로 **Aging**기법이 있다
+  - 오래 기다린 프로세스에게 우선순위를 올려줌
+
+#### 4. Round Robin(RR)
+
+- 각 프로세스는 동일한 크기와 할당 시간을 가짐
+- 할당시간이 지나면 프로세스는 선점당하고 ready queue의 제일 뒤에가서 다시 줄을 선다
+- 응답시간이 빨라진다.
+- N개의 프로세스가 ready queue에 있고 할당 시간이 q time unit인 경우 각 프로세스는 최대 q time unit 단위로 CPU시간의 1/N을 얻는다.
+  - 어떤 프로세스도 (n-1)q time unit 이상 기다리지 않는다(응답시간이 짧음)
+- Performance
+  - q가 커질수록 FCFS
+  - q가 작아지면 context switch 오버헤드가 커짐
+- 일반적으로 SJF 보다 average turnaround time이 길지만 response time은 더 짧다
+
+
+
+#### 5. Multilevel Queue
+
+![image-20221130002746261](README.assets/image-20221130002746261.png)
+
+- Ready Queue를 여러개로 분할
+  - foreground(interactive)
+  - background(batch - no human interaction)
+- 각 큐는 독립적인 스케줄링 알고리즘을 가짐
+  - foreground - RR
+  - background - FCFS
+- 큐에 대한 스케줄링이 필요
+  - Fixed priority scheduling
+    - 우선순위가 높은 큐에 항상 먼저 CPU를 줌
+    - 기아현상 발생
+  - Time slice
+    - 각 큐에 CPU Time을 할당함
+    - ex 8 : 2
+- 라우든 큐보다 공정하진 않지만 우선순위가 높은 프로세스를 먼저 처리가능
+
+
+
+#### 6. Multilevel Feedback Queue
+
+![image-20221130003332366](README.assets/image-20221130003332366.png)
+
+- 상위큐에서 처리가 안끝날경우 하위큐로 내려가는 형태(라운드로빈과 멀티큐를 합침)
+
+
+
+#### 7. Multiple-Processor Scheduling
+
+- CPU가 여러개인 경우 스케줄링은 복잡해짐
+- Homogenous processor인 경우
+  - Queue에 한줄로 세워서 꺼내가는 방식이 있음
+  - 특정 프로세서에서 수행되어야하는 프로세스가 있는 경우 더 복잡해짐
+- Load Sharing
+  - 일부 프로세서에 job이 몰리지 않도록 부하를 적절히 공유해야함
+- Symmetric Multiprocessing(SMP)
+  - 각 프로세서가 각자 알아서 스케줄링 결정
+- Asymmetrin multiprocessing
+  - 하나의 프로세서가 시스템 데이터의 접근과 공유를 책임지고 나머지 프로세서는 거기에 따름
+
+#### 8. Real-Time Scheduling
+
+- Hard real-time systems
+  - 반드시 정해진 시간안에 끝내도록 스케줄링
+- Soft real-time systems
+  - 데드라인으로 우선순위 결정
+
+
+
+#### 9. Thread Scheduling
+
+- Local Scheduling
+  - 사용자 수준에 의해 thread를 생성한것(운영체제는 thread의 존재를 모름)
+  - 프로세스 내부에서 CPU 스케줄링을 결정
+- Global Scheduling
+  - Kernel level thread의 경우 일반 프로세스와 마찬가지로 커널의 단기 스케줄러가 어떤 thread의 줄 지 결정
+
+#### 10. Algorithm Evaluation
+
+- Queueing models
+  - 확률 분포로 주어지는 arrival rate와 service rate등을 통해 각종 performance index 값을 계산
+- Implementaion (구현) & Measurement(성능측정)
+  - 실제 시스템에 알고리즘을 구현하여 실제 작업에 대해서 성능을 측정 비교
+- Simulation (모의 실험)
+  - 알고리즘을 모의 프로그램으로 작성 후 trace를 입력하여 결과 비교
+
+
+
+## 3. Process Synchronization
+
++ 데이터 접근
+
+![image-20221130005018167](README.assets/image-20221130005018167.png)
+
+- Race Condition
+
+  ![image-20221130005218165](README.assets/image-20221130005218165.png)
+
+  - 여러개의 연산주체가 동시에 데이터를 읽어오면서 문제를 일으키는 것
+  - 멀티 프로세서 뿐 아니라 공유메모리를 사용하는 프로세스들 사이에서도 Race Condition 문제가 발생할 수 있음
+
+- OS에서 race condition
+
+  - kernel 수행 중 인터럽트 발생
+  - process가 system call을 하여 kernel mode로 수행중인데 context switch가 일어나는 경우
+  - MultiProcessor에서 shared memory내의 kernel data
+
+
+#### 1.Kernel 수행 중 인터럽트 발생
+
+![image-20221130005738514](README.assets/image-20221130005738514.png)
+
+- 커널이 작동하며 Count를 증가시키고 있었음
+- 메모리값을 불러들이고 연산하고 저장하는 과정이였음
+- 변수를 읽어들인 상태에서 인터럽트가 작동된 경우 불러들이기만 한 상태에서 인터럽트를 수행
+- 인터럽트가 카운트를 감소시키는 함수라면 이를 작동시키고 다시 kernel로 CPU를 돌려줌
+- 하지만 커널에 저장된 내용으로는 불러들인 상태이기 때문에 그 다음 작업인 감소된 것을 무시하고 원래 하던대로 증가시키고 저장함
+- 해결법
+  - 중요한 작업시에는 인터럽트가 발생하지 않도록 설정하여 모든 작업을 수행하고 인터럽트가 작동되록함
+
+
+
+#### 2. System Call
+
+![image-20221130010358110](README.assets/image-20221130010358110.png)
+
+- 시스템 콜에 의해 커널모드에서 작업을 하던 중, CPU를 빼앗겨 B의 작업을 하면, B작업이 끝났을 때, 커널모드에서 하던 작업을 다시진행한다.
+- 하지만 이는 PCB에 저장되지 않고, 다시 A가 CPU를 받아들일때는 끊기기전에 작업기록만 남기 때문에 코드가 한번 더 실행된다.
+- 해결책
+  - 커널모드에서 수행 중일 때는 CPU를 preempt하지 않음
+  - 커널모드에서 사용자 모드로 돌아갈 때 preempt
+
+
+
+#### 3. Multiprocessor
+
+![image-20221130011328134](README.assets/image-20221130011328134.png)
+
+- 어떤 CPU가 마지막으로 count를 store했는가를 알 수 없음
+- 어떤 데이터에 연산을 할때 락을 통해 접근을 막는 등의 방법을 해야함
+- 커널에 접근하는 CPU를 하나로 제한함
+
+​	
+
+#### 4. Process Synchronization 문제
+
+- 공유 데이터의 동시접근은 데이터의 불일치 문제를 발생시킴
+- 일관성유지를 위해서는 협력 프로세스간의 실행 순서를 정해주는 메커니즘 필요
+- **Race condition**
+  - 여러 프로세스들이 동시에 공유 데이터를 접근하는 상황
+  - 데이터의 최종 연산 결과는 마지막에 그 데이터를 다룬 프로세스에 따라 달라짐
+- race condition을 막기 위해서는 concurrent process는 동기화 되어야 한다
+
+#### 5. Critical-Section Problem
+
+- n개의 프로세스가 공유 데이터를 동시에 사용하기를 원하는 경우
+- 각 프로세스의 code segment에는 공유 데이터를 접근하는 코드인 critical section이 존재
+- Problem
+  - 하나의 프로세스가 critical section에 있을 때 다른 모든 프로세스는 critical section에 들어갈 수 없어야 한다.
+
+![image-20221130012058846](README.assets/image-20221130012058846.png)
 
 
 
@@ -625,8 +852,6 @@ Blocked는 프로세스가 자신이 요청한 I/O를 기다리며 스스로 대
 #### 3. context switch를 설명하시고 PCB가 어디에 저장되는지 설명하세요
 
 ans ) CPU를 한 프로세스에서 다른 프로세스로 넘겨주는 과정입니다.  Context Switch가 이루어질 때, 운영체제를 통해 PCB가 메모리에 저장되고 다음 프로세스의 PCB를 읽어 드립니다.
-
-
 
 #### 4. 동기식 입출력과 비동기 입출력 방식의 차이에 대해서 설명해주세요
 
@@ -660,3 +885,30 @@ Shared Memory 방식이 있습니다. 커널을 통해서 Process에서 Shared M
 
 CPU Scheduler는 Ready 상태인 프로세스 중에서 이번에 줄 프로세스를 결정하는 것이고, Dispatcher는 CPU Scheduler에 의해 CPU제어권을 프로세스에게 넘겨주는 역할을 합니다. 그리고 이 과정을 context-switch라고 합니다.
 
+#### 9 .Swapper와 Job Scheduler의 차이는? 
+
+ Swapper와 장기 스케줄러와의 차이점은 memory를 주는게 아니라 뺏는 것 장기 스케줄러는 어떤 프로세스 상태가 new에 있는데, 얘 한테 메모리(및 각종 자원)를 줄까 말까 고민하지만, 중기 스케줄러는 프로그램에게서 메모리를 통째로 뺏어버림
+
+
+
+#### 10. context switch가 일어나지는 않지만, PCB에 context의 일부를 저장해야 하는 경우는?
+
+인터럽트가 일어나는 모든 경우는 우선 저장이 필요함. 사용자 프로그램 A를 실행하다가, 인터럽트가 일어나고, 이후 다시 사용자 프로그램 A를 실행하게 된다면, 문맥교환은 일어나지 않지만 PCB에 context 중 일부를 저장해야 함
+
+
+
+#### 11.CPU 스케줄링 기법중 SJF와 SRTF 방식의 대해 설명해주세요
+
+두 방식의 공통점은 CPU burst time이 가장 짧은 프로세스를 먼저 스케줄 한다는 것으로, 이로인해 Starvation이 발생할 수 있다는 것입니다.
+
+두 방식 모두 CPU-burst-time이 짧은 프로세스를 먼저 스케줄링하지만, SJF는 비선점형 방식으로 프로세스가  CPU를 선점하면 끝날때까지 CPU를 가지고 있습니다.
+
+하지만 SRTF는 현재수행중인 프로세스의 남은 burst time보다 짧은 프로세스가 도착하면 CPU를 선점당하게 됩니다. 이런 특성으로 인해 SRTF는 가장 짧은 대기시간을 보장하는 스케줄링 기법입니다.
+
+
+
+#### 12. RaceCondition이 발생하는 상황 중 Kernel 수행중 인터럽트가 발생하는 경우에 대해 간략히 설명하고, 이에대한 해결법을 말해주세요.
+
+커널함수에서 메모리를 불러들이는 도중 인터럽트가 발생하여 메모리에 있는 값을 증가시킬때 문제가 발생합니다. 인터럽트가 끝날 때, 커널함수에 저장된 메모리에 그 값이 반영되지 않고, 커널함수는 반영되지 않은 메모리를 가지고 함수작업을 진행합니다.
+
+이를 해결하기 위해서는 커널함수에서 데이터를 로드 ,저장과 같은 중요작업시에는 인터럽트가 작동되지 않도록 해야합니다
