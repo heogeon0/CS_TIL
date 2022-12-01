@@ -818,7 +818,7 @@
 
 - 공유 데이터의 동시접근은 데이터의 불일치 문제를 발생시킴
 - 일관성유지를 위해서는 협력 프로세스간의 실행 순서를 정해주는 메커니즘 필요
-- **Race condition**
+- **Race condition**(경쟁상태)
   - 여러 프로세스들이 동시에 공유 데이터를 접근하는 상황
   - 데이터의 최종 연산 결과는 마지막에 그 데이터를 다룬 프로세스에 따라 달라짐
 - race condition을 막기 위해서는 concurrent process는 동기화 되어야 한다
@@ -832,7 +832,114 @@
 
 ![image-20221130012058846](README.assets/image-20221130012058846.png)
 
+### 2. Initial Attempts to Solve Problem (프로그램적으로 Sysnchronization을 만드는 방법)
 
+1. Mutual Exclusion (상호배제)
+   - 프로세스가 critical section을 수행중이면 다른 프로세스는 접근 못하도록 함
+2. Progress(진행??)
+   - 아무도 critical section에 있지 않은 상태에서 critical section에 들어가고자 하는 프로세스가 있으면 들어갈 수 있어야함
+3. Bounded Waiting
+   - 프로세스가 critial section에 들어가려고 요청한 후부터 그 요청이 허용될 때까지 다른 프로세스들이  critical section에 들어가는 횟수에 한계가 있어야함
+     - 여러개의 프로세스가 critical section에 들어가려고할 때 몇개의 프로세스만 점유하지 못하도록 해야함
+
+#### 1. Algorithm 1
+
+![image-20221201010219416](./README.assets/image-20221201010219416.png)
+
+- critical section에 있는 프로세스가 turn을 바꿔 줄 것임
+- 극단적으로 프로세스 0은 여러번 critical section에 들어가고싶지만 1번은 한번만 들어와야 할 때 turn 이 바뀌지 않아서 critical section에 들어가지못하는 경우 발생
+
+
+
+#### 2. Algorithm 2
+
+![image-20221201010731706](./README.assets/image-20221201010731706.png)
+
+- 두개의 프로세스가 flag를 같이 true를 바뀐 상태에서는 아무도 critical section에 들어가지못함
+
+
+
+#### 3. Algorithm 3 (Peterson's Algorithm)
+
+![image-20221201010958162](./README.assets/image-20221201010958162-16698246008841.png)
+
+- flag와 순서를 모두 고려
+- Busy Waiting => Spin lock : 계속 CPU와 메모리를 쓰면서 기다림
+
+```
+ P0: flag[0] = true // 임계 구역 사용을 원함
+     turn = 1 // 1번 프로세스에게 차례가 감
+     while( flag[1] && turn == 1 )
+     {
+          // flag[1] 이 turn[1] 을 가지고 있으므로
+          //현재 사용중임
+          // 임계 구역이 사용 가능한지 계속 확인
+     }// 임계 구역
+     ...
+    // 임계 구역의 끝
+   flag[0] = false
+   
+P1: flag[1] = true
+    turn = 0
+    while( flag[0] && turn == 0 )
+    {
+         // 임계 구역이 사용 가능한지 계속 확인
+    }// 임계 구역
+    ...
+    // 임계 구역의 끝
+```
+
+
+
+### 3. Synchronization Hardware
+
+- 하드웨어적으로 Test&Modify를 atomic하게 (읽고 쓰는 과정을 하나로) 수행할 수 있도록 지원하는 경우 앞의 문제는 간단히 해결
+
+![image-20221201011701404](./README.assets/image-20221201011701404.png)
+
+
+
+#### 4. Semaphores 추상자료형
+
+일종의 추상자료형으로 직접 작동되지는 않지만 추상적으로 표현
+
+- Semaphore S
+
+  - 정수 자료형
+  - 프로세스의 락을 풀고, 락을 거는 과정을 프로그래머에게 간단히 제공
+  - 공유자원을 획득 / 반납하는 과정을 처리해줌
+
+  ![image-20221201012527101](./README.assets/image-20221201012527101.png)
+
+  - P연산 : 자원을 획득하는 연산
+  - S연산 : 자원을 반납하는 연산
+
+- busy Wait 방식의 구현
+
+![image-20221201012915497](./README.assets/image-20221201012915497.png)
+
+
+
+- Block / Wakeup Implementation
+
+![image-20221201013043869](./README.assets/image-20221201013043869.png)
+
+![image-20221201013211017](./README.assets/image-20221201013211017.png)
+
+![image-20221201013440138](./README.assets/image-20221201013440138.png)
+
+
+
+#### 2. DeadLock and Starvation
+
+1. Deadlock
+   1. 둘 이상의 프로세스가 서로 상대방에 의해 충족될 수 있는 event를 무한히 기다리는 현상
+2. Starvation
+   - indefinite blockin 프로세스가 suspend된 이유에 해당하는 세마포어큐에서 빠져나갈 수 없는 현상
+
+---
+
+### 
 
 ---
 
@@ -912,3 +1019,52 @@ CPU Scheduler는 Ready 상태인 프로세스 중에서 이번에 줄 프로세�
 커널함수에서 메모리를 불러들이는 도중 인터럽트가 발생하여 메모리에 있는 값을 증가시킬때 문제가 발생합니다. 인터럽트가 끝날 때, 커널함수에 저장된 메모리에 그 값이 반영되지 않고, 커널함수는 반영되지 않은 메모리를 가지고 함수작업을 진행합니다.
 
 이를 해결하기 위해서는 커널함수에서 데이터를 로드 ,저장과 같은 중요작업시에는 인터럽트가 작동되지 않도록 해야합니다
+
+
+
+#### 13 . 스레드의 장점 중 responsiveness를 동기식과 비동기식 입장에서 설명한다면?
+
+비동기적으로 작업을 할 때, 하나의 스레드가 일처리를 하고있을 때 다른 스레드는 스레드의 일처리를 기다리지 않고 다른 작업을 할 수 있습니다.
+동기적으로는 하나의 일을 다중스레드가 처리하면서 높은 처리율과 성능향상을 기대할 수 있습니다.
+
+#### 14. 유저스레드와 커널스레드의 차이점은?
+
+유저스레드는 OS가 스레드에 대한 정보를 기록하지 않는다는 점이다. 이런 이유로 스레드 스케줄링을 할 때 프로세스가 직접 스레드 스케줄링을 해야하지만, 커널 스레드는 OS가 스레드 스케줄링을 진행한다
+
+
+
+#### 15. CPU 스케줄링에서 preemptive와 nonpreemptive의 정의와 각각 어떠한 경우 발생하는지 설명하세요 (하나카드 기출)
+
+preemptive와 nonpreemptive는 선점형과 비선점형을 의미한다 선점형은 프로세스가 CPU를 할당받았을 때, CPU-burst-time이 끝날때 까지 CPU를 선점하는 것이고, 비 선점형은 할당받았더라도 기준에 충족하는 프로세스가 ready-queue에 있다면, 새로운 프로세스에 CPU를 할당한다.
+
+
+
+#### 16. Deadlock의 발생 조건, 회피 방법에 대해 설명하세요(검색해서하세요)
+
+DeadLock이란 교착상태라고 하며 프로세스가 자원을 얻지못하여 무한히 기다리는 상태라고 한다.
+
+ Deadlock의 발생조건은 상호배제, 점유상태대기, 선점불가, 순환성 대기 이다. 
+
+
+#### 17. i/o bound job과 cpu bound job의 차이점에 대해서 설명하세요
+
+I / O bound job은 CPU를 이용하는 시간보다 I/O작업에 더 많이 필요한 작업이며, CPU-bound job은 CPU를 이용하는 계산하는 
+
+
+
+#### 18. Race Condition에 대해 설명해주세요
+
+Race condition이란 프로세스들이 경쟁적으로 공유데이터에 접근할려는 상태이다. 이때 프로세스의 접근 순서에 따라 공유데이터의 값이 달라질 수 있다. 이런 상태를 막ㄱ기위해서는 프로세스가 Synchronization(동기화) 되어야 한다.
+
+
+
+#### 19. Peterson's Algorithm에 대해 설명해주세요
+
+Peterson Algorithm이라고 불리는 알고리즘을 활용하여 synchronziation를 구현할 수 있습니다.
+
+이 알고리즘은 프로세스의 수만 큼 길이를 가지는 boolean 배열과 turn 변수 를 활용하여 상호배제,  progress, bounded waiting을 만족시킬 수 있는 알고리즘입니다.
+
+flag를 활용하여 critical section에 접근해야 함을 알리고, 각각의 프로세스는 critical section에서 다음 프로세스의 순서를 결정하여 synchronization을 구현할 수 있습니다.
+
+
+
