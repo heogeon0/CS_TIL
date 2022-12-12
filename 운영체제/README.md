@@ -899,7 +899,7 @@ P1: flag[1] = true
 
 
 
-#### 4. Semaphores 추상자료형
+#### 1. Semaphores 추상자료형
 
 일종의 추상자료형으로 직접 작동되지는 않지만 추상적으로 표현
 
@@ -926,6 +926,8 @@ P1: flag[1] = true
 
 ![image-20221201013211017](./README.assets/image-20221201013211017.png)
 
+
+
 ![image-20221201013440138](./README.assets/image-20221201013440138.png)
 
 
@@ -936,10 +938,109 @@ P1: flag[1] = true
    1. 둘 이상의 프로세스가 서로 상대방에 의해 충족될 수 있는 event를 무한히 기다리는 현상
 2. Starvation
    - indefinite blockin 프로세스가 suspend된 이유에 해당하는 세마포어큐에서 빠져나갈 수 없는 현상
+   - 
 
----
 
-### 
+
+### 4. Synchronization과 관련된 문제들
+
+#### 1. Bounded-Buffer Problem(Buffer의 크기가 유한한 환경에서 발생하는 문제)
+
+(Producer-Consumer Problem)
+
+![image-20221212235847118](README.assets/image-20221212235847118.png)
+
++ Producer 프로세스와 Consumer 프로세스 두가지 종류가 여러개씩 존재함
++ Producer는 공유데이터를 만들어서 버퍼에 넣는 역할
++ Consumer는 버퍼에 공유데이터를 꺼내서 사용함
+
+
+
+1. 문제
+
+   - 여러개의 생산자가 동시에 버퍼에 데이터를 넣는 작업을 하는 경우
+     - Lock을 활용하여 한번에 같은 버퍼를 사용하는 상황을 막음
+   - 공유버퍼가 이미 가득 찬 상태에서 생산자가 먼저 도착해서 다음 작업을 기다리는 경우
+     - 생산자 입장에서는 사용할 자원이 없는 상태임
+     - 비어있는 버퍼가 있으면 작업을하고, 그렇지 않으면 기다리도록 한다.
+
+   ![image-20221213001213114](README.assets/image-20221213001213114.png)
+
+
+
+
+
+#### 2. Readers-Writers Problem(주로 DB에서 발생)
+
+- 한 프로세스가 DB에 write중일 때 다른 process가 접근하면 안됨
+- read는 동시에 여럿이 해도 됨
+- solution
+  - Writer가 DB에 접근 허가를 아직 얻지 못한 상태에서는 모든 대기중인 Reader들을 다 DB에 접근하게 해준다
+  - Writer는 대기중인 Reader가 하나도 없을 때 DB접근이 허용된다
+  - 일단 Writer가 DB에 접근 중이면 Reader들은 접근이 금지된다
+  - Writer가 DB에서 빠져나가야만 Reader들이 접근 할 수 있도록 한다
+
+![image-20221213001721644](README.assets/image-20221213001721644.png)
+
++ Reader가 작업하는 와중에 Reader와 Writer가 같이 들어온 경우 꾸준히 Reader들이 들어온다면 Writer는 Starvation현상에 빠질 수 있음
++ Starvation을 해결하기 위해 우선순위큐를 활용하는 방법이 있음.
+
+
+
+#### 3. Dining-Philosophers Problem (식사하는 철학자)
+
+- 다섯명의 철학자가 있음
+- 배고프면 왼쪽오른쪽 수저를 잡고 밥을 먹는 행위를 반복
+- 밥을 먹기위해서는 양쪽 모두 잡아야함
+- 밥을 다 먹으면 생각
+
+![image-20221213003707530](README.assets/image-20221213003707530.png)
+
+- 위 코드는 DeadLock의 가능성이 있음
+- 모든 철학자가 동시에 왼쪽젓가락을 잡게되는 경우 Deadlock이 발생
+- 해결방안
+  - 4명의 철학자만이 테이블에 동시에 앉도록
+  - 젓가락을 두개 모두 집을 수 있을 때만 젓가락을 집게한다
+  - 짝수는 왼쪽부터, 홀수는 오른쪽부터 집도록 한다.
+
+![image-20221213004149703](README.assets/image-20221213004149703.png)
+
+### 5. Monitor
+
+- Semaphore의 문제점
+
+  - 코딩하기 힘들다
+  - 정확성의 입증이 어렵다
+  - 자발적 협력이 필요하다
+  - 한번의 실수가 모든 시스템에 치명적 영향
+
+- 동시 수행중인 프로세스 사이에서 abstract data type의 안전한 공유를 보장하기 위한 high-level synchronization construct
+
+- 모니터 내에서는 한번에 하나의 프로세스만이 활동 가능
+
+- 프로그래머가 동기화 제약 조건을 명시적으로 코딩할 필요 없음
+
+- 프로세스가 모니터안에서 기다릴 수 있도록 하기 위해 condition variable 사용
+
+- Condition variable은 wait와 signal 연산에 의해서만 접근 가능
+
+- x.wait()을 invoke한 프로세스는 다른 프로세스가 x.signal()을 invoke하기 전까지 suspend 된다
+
+- x.signal()은 정확하게 하나의 suspend된 프로세스를 resume한다
+
+- 
+
+  ![image-20221213004854861](README.assets/image-20221213004854861.png)
+
+  ![image-20221213004916851](README.assets/image-20221213004916851.png)
+
+
+
+#### 1. Producer - Consumer feat Monitor
+
+![image-20221213005351947](README.assets/image-20221213005351947.png)
+
+- 공유데이터가 모니터 내부에서 정의되기 때문에  Lock을 고려할 필요가 없음
 
 ---
 
