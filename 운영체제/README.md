@@ -120,10 +120,6 @@
 
 ### + 운영체제의 구조
 
-![image-20221122231321657](C:\Users\multicampus\AppData\Roaming\Typora\typora-user-images\image-20221122231321657.png)
-
-
-
 
 
 ###  4. 컴퓨터 시스템 구조
@@ -1028,8 +1024,6 @@ P1: flag[1] = true
 
 - x.signal()은 정확하게 하나의 suspend된 프로세스를 resume한다
 
-- 
-
   ![image-20221213004854861](README.assets/image-20221213004854861.png)
 
   ![image-20221213004916851](README.assets/image-20221213004916851.png)
@@ -1041,6 +1035,225 @@ P1: flag[1] = true
 ![image-20221213005351947](README.assets/image-20221213005351947.png)
 
 - 공유데이터가 모니터 내부에서 정의되기 때문에  Lock을 고려할 필요가 없음
+
+
+
+
+
+## 4. DeadLock(교착상태)
+
+- Deadlock
+  - 일련의 프로세스들이 서로가 가진 자원을 기다리며 block된 상태
+- Resource
+  - 하드웨어, 소프트웨어 등을 포함하는 개념
+  - 프로세스가 자원을 사용하는 절차
+    - Request, Allocate, Use, Release
+
+1. Deadlock 발생의 4가지 조건
+   - Mutual exclusion (상호배제)
+     - 매 순간 하나의 프로세스만이 자원을 사용할 수 있음
+   - No preemption(비선점)
+     - 프로세스는 자원을 스스로 내어놓을 뿐 강제로 빼앗기지 않음
+   - Hold and wait(보유대기)
+     - 자원을 가진 프로세스가 다른 자원을 기다릴 때 보유 자원을 놓지 않고 계속 가지고 있음
+   - Circular wait(순환대기)
+     - 자원을 기다리는 프로세스간에 사이클이 형성 되어야함
+
+
+
+#### 1. Deadlock Avoidance
+
+1. Deadlock aviodance
+
+   - 자원 요청에 대한 부가정보를 이용해서 자원할당이 deadlock으로 부터 안전한지를 동적으로 조사하여 안전할 때만 할당
+
+   - 가장 단순하고 일반적인 모델은 프로세스의 팔요로 하는 각 자원별 최대 사용량을 미리 선언하는 방법
+
+   - Banker's Algorithm
+
+     ![image-20221227214554392](README.assets/image-20221227214554392.png)
+
+     - P1이 Max자원을 희망할 때,  가용자원으로 처리가 가능하기 때문에 해줌
+     - P4가 최대 자원을 희망할 때, 가용자원으로 처리 불가능하기 때문에 요청 거절
+
+2. Deadlock Detection and Recovery
+
+   - 데드락 같은 이상 발생시 문제 해결하는 방식
+
+     ![image-20221227222139822](README.assets/image-20221227222139822.png)
+
+   - Recovery 방법
+     - Process termination
+       - 모든 프로세스를 중단
+     - Resource Preemption
+       - 하나씩 중단하면서 해결
+
+## 5. 메모리 관리
+
+### 1.Logical vs Physical
+
+1. Logical address
+   - 프로세스마다 독립적으로 가지는 주소 공간
+   - 각 프로세스 마다 0번지 부터 시작
+   - CPU가 보는 주소는 logical address 임
+2. Physical address
+   - 메모리에 실제 올라가는 위치
+
+- 주소바인딩 : 주소를 결정하는 것
+  - Symbolic -> Logical -> Physical
+
+
+
+#### 1. 주소바인딩(주소가 결정되는 시점)
+
+![image-20221230215835875](README.assets/image-20221230215835875.png)
+
+1. Complie time binding
+
+   - 컴파일 시에 주소 바인딩
+   - 비효율적인 방식이기 때문에 사용하지 않음
+
+2. Load time binding
+
+   - 로드시 바인딩 함
+
+3. Runtime binding
+
+   - 실행시에 바인딩 함 (로드타임과 동일)
+   - 실행 중 주소가 바뀔 수 있음
+   - 현재 컴퓨터 시스템
+   - 하드웨어적인 지원이 필요
+
+   
+
+#### 2. MMU(주소변환 시스템)
+
+- logical address를 physical address로 변환해주슨 시스템
+
+![image-20221230220437679](README.assets/image-20221230220437679.png)
+
+![image-20221230220711481](README.assets/image-20221230220711481.png)
+
+
+
+#### 3. Dynamic Loading
+
+- 프로세스 전체를 메모리에 미리 다 올리는 것이 아니라 해당 루틴이 불려질 때 메모리에 load하는 것
+- memory utilization 향상
+- 운영체제의 특별한 지원 없이 프로그램 자체에서 구현 가능
+
+
+
+#### 4. Overlays
+
+- 메모리에 프로세스의 부분 중 실제 필요한 정보만 올림
+- 프로세스의 크기가 메모리보다 클 때 유용
+- 운영체제의 지원없이 사용자에 의해 구현
+- 초창기 시스템에서 프로그래머가 구현
+
+
+
+ #### 5. Swapping
+
+1. Swapping
+   - 프로세스를 일시적으로 메모리에서 backing store로 쫒아내는 것
+     - Backing store(=swap area)
+2. Swap in / Swap out
+   - 일반적으로 중기 스케줄러에 의해 결정됨
+
+
+
+### 2. Dynamic Linkin
+
+- Linking을 실행 시간까지 미루는 기법
+- Static linking
+  - 라이브러리가 프로그램 실행 파일 코드에 포함됨
+  - 실행 파일의 크기가 커짐
+  - 동일한 라이브러리를 각각의 프로세스가 메모리에 올리므로 메모리 낭비
+- Dynamic linkin
+  - 라이브러리 실행시 연결
+  - 라이브러리 호출 부분에 라이브러리 루틴의 위치를 찾기 위한 sttub이라는 작은 코드를 둠
+  - 라이브러리가 이미 메모리에 있으면 그 주소로 가고 없으면 디스크에서 읽어옴
+  - 운영체제의 도움이 필요
+
+
+
+### 3. Allocation of Physical Memory
+
+![image-20221230222138510](README.assets/image-20221230222138510.png)
+
+- 메모리는 일반적으로 두 영역으로 나뉘어 사용
+  - OS 상주 영역
+    - interrupt vector와 함께 낮은  주소 여역 사용
+  - 사용자 프로세스 영역
+    - 높은 주소 영역 사용
+- 사용자 프로세스 영역의 할당 방법
+  - Contiguous allocation
+    - 각각의 프로세스가 메모리의 연속적인 공간에 적재
+  - Noncontiguous allocation
+    - 하나의 프로세스가 메모리의 여러 영역에 분산되어 올라갈 수 있음
+
+#### 1. Contiguous allocation (연속할당)
+
+![image-20221230222340839](README.assets/image-20221230222340839.png)
+
+1. 고정 분할
+
+   - 물리적 메모리를 몇 개의 영구적 분할로 나눔
+   - 분할의 크기가 모두 동일한 방식과 서로 다른 방식이 존재
+   - 분할당 하나의 프로그램 적재
+   - 융통성이 없음
+     - 동시에 메모리에 load되는 프로그램의 수가 고정
+     - 최대 수행 가능 프로그램 크기 제한
+   - Internal fragmentation 발생
+
+2. 가변분할
+
+   - 프로그램의 크기 고려해서 할당
+   - 분할의 크기, 개수가 동적으로 변함
+   - 기술적 관리 기법 필요
+   - External fragmentation 발생
+   - **Hole**
+     - 가용 메모리 공간
+     - 다양한 크기의 hole이 여러 곳에 흩어져 있음
+     - 프로세스가 도착하면 수용가능한 hole 할당
+
+   ![image-20221230222913407](README.assets/image-20221230222913407.png)
+
+3. Dynamic Storage-Allocation Problem : hole 을 매칭하는 방법
+
+   - Firstfit
+     - size가 n 이상인 것 중 최초로 찾아지는 hole
+   - Best-fit
+     - 모든 홀을 다살펴본 후 최적의 홀
+   - Worst-fit
+     - 가장 큰 hole에 할당
+   - Compation
+     - 사용 중인 메모리 영역을 한군데로 몰고 hole들을 모아 큰 block을 만듬
+     - 매우 비용이 많이듬
+     - 알고리즘을 만드는 것이 복잡해짐
+
+#### 2. Noncontiguous Allocation (비연속 할당)
+
+- 주소 변환이 복잡해 질 수 있음
+- 메모리 관리에 용이해짐
+
+1. Paging
+
+   - Proccess 의 virtual memory를 동일한 사이즈의 page 단위로 나눔
+   - Virtual memory의 내용이 page단위로  noncontiguous하게 저장
+   - Basic Method
+     - physical memory의 크기를 동일한 크기의 frame으로 나눔
+
+   ![image-20221230224255541](README.assets/image-20221230224255541.png)
+
+   - Page table은 main memory에 상주
+
+2. Two-Level Paging table
+
+   
+
+
 
 ---
 
